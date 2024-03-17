@@ -20,7 +20,20 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
+import Vue, { CreateElement } from 'vue';
+
+interface DataReturnType {
+  pageNotFound: string;
+  otherError: string;
+}
+
+interface ErrorLayoutVueInstance extends Vue {
+  pageNotFound: string;
+  otherError: string;
+  error: {
+    statusCode?: number;
+  };
+}
 
 export default Vue.extend({
   name: 'ErrorLayout',
@@ -30,20 +43,22 @@ export default Vue.extend({
       statusCode: Number,
     }),
   },
-  data() {
+  data(): DataReturnType {
     return {
       pageNotFound: '404 Not Found',
-      otherError: 'An error occurred',
+      otherError: 'An error occurred.',
     };
   },
-  head() {
+  head(this: ErrorLayoutVueInstance) {
     const title = this.error && this.error.statusCode === 404 ? this.pageNotFound : this.otherError;
     return {
       title,
     };
   },
 });
+
 </script>
+
 
 <style scoped>
 h1 {

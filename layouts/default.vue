@@ -80,47 +80,67 @@
         <v-footer :absolute="!fixed" app>
             <span>&copy; {{ new Date().getFullYear() }}</span>
         </v-footer>
+        <!-- SNACKBAR -->
+        <div class="snackbar-div text-center">
+            <SnackBar
+                :key="snackbarKey"
+                v-model="snackbar"
+                :message="responseMessage"
+                :timeout="timeout"
+                :color="snackbarColor"
+            />
+        </div>
     </v-app>
 </template>
 
-<script>
-export default {
-    name: 'DefaultLayout',
+<script lang="ts">
+import Vue from 'vue'
+import { Component, Prop, Watch } from 'nuxt-property-decorator'
+import SnackBar from '~/components/SnackBar.vue'
+import { snackbarService } from '~/services/snackbarService '
 
-    data () {
-        return {
-            darkTheme: true,
-            clipped: false,
-            drawer: false,
-            fixed: false,
-            items: [
-                {
-                    icon: 'mdi-apps',
-                    title: 'Welcome',
-                    to: '/'
-                },
-                {
-                    icon: 'mdi-chart-bubble',
-                    title: 'Inspire',
-                    to: '/inspire'
-                }
-            ],
-            miniVariant: false,
-            right: true,
-            rightDrawer: false,
-            title: 'Vuetify.js'
+@Component({
+    components: {
+        SnackBar
+    }
+})
+export default class DefaultLayout extends Vue {
+    darkTheme: boolean = true
+    clipped: boolean = false
+    drawer: boolean = false
+    fixed: boolean = false
+    miniVariant: boolean = false
+    right: boolean = true
+    rightDrawer: boolean = false
+    title: string = 'Vuetify.js'
+
+    items: Array<{ icon: string; title: string; to: string }> = [
+        {
+            icon: 'mdi-apps',
+            title: 'Welcome',
+            to: '/'
+        },
+        {
+            icon: 'mdi-chart-bubble',
+            title: 'Inspire',
+            to: '/inspire'
         }
-    },
+    ]
 
-    methods: {
-        toggleTheme () {
-            this.darkTheme = !this.darkTheme
-            this.$vuetify.theme.dark = this.darkTheme
-            localStorage.setItem('darkTheme', this.darkTheme)
-        }
-    },
+    // Snackbar properties
+    snackbar: boolean = false
+    responseMessage: string = ''
+    timeout: number = 4000
+    snackbarColor: string = ''
+    snackbarKey: number = 0
 
-    created () {
+    toggleTheme(): void {
+        this.darkTheme = !this.darkTheme
+        this.$vuetify.theme.dark = this.darkTheme
+        localStorage.setItem('darkTheme', JSON.stringify(this.darkTheme))
+    }
+
+    created(): void {
         const userPrefersDark = localStorage.getItem('darkTheme')
         if (userPrefersDark !== null) {
             this.darkTheme = JSON.parse(userPrefersDark)
@@ -128,6 +148,31 @@ export default {
         } else {
             this.$vuetify.theme.dark = this.darkTheme
         }
+
+        // Listen to snackbar events
+        snackbarService.vm.$on('show-snackbar', this.showSnackbar)
+    }
+
+    beforeDestroy(): void {
+        // Cleanup to avoid memory leaks
+        snackbarService.vm.$off('show-snackbar', this.showSnackbar)
+    }
+
+    showSnackbar(options: {
+        message: string
+        color: string
+        timeout: number
+    }): void {
+        this.snackbar = false
+        this.responseMessage = options.message
+        this.snackbarColor = options.color
+        this.timeout = options.timeout
+        this.snackbar = true
+        this.snackbarKey++
     }
 }
 </script>
+
+<style>
+/* Your styles here */
+</style>
