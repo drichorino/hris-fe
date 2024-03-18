@@ -112,7 +112,7 @@ export default class DefaultLayout extends Vue {
     miniVariant: boolean = false
     right: boolean = true
     rightDrawer: boolean = false
-    title: string = 'Vuetify.js'
+    title: any = process.env.SITE_NAME
 
     items: Array<{ icon: string; title: string; to: string }> = [
         {
